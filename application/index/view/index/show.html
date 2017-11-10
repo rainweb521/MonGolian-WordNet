@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>检索结果</title>
+
+
+</head>
+<style>
+	@font-face
+	{
+		font-family: myFirstFont;
+		src: url('/public/font/MHT.ttf');
+		/*url('aa.eot'); !* IE9+,可以是具体的实际链接 *!*/
+	}
+	.all
+	{
+		font-family: myFirstFont;
+	}
+	.font_menggu {
+		-moz-transform: rotate(90deg);
+		-webkit-transform: rotate(90deg);
+		display: block;
+		position: absolute;
+		filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=0)
+	}
+</style>
+<body>
+
+<div class="all" align="center" style="">
+<table class="layui-table" width="70%" style="">
+	<!--<colgroup>-->
+		<!--<col width="30">-->
+		<!--<col width="60">-->
+		<!--<col width="120"><col>-->
+
+	<!--</colgroup>-->
+	<thead>
+	<tr style="background-color: #737383">
+		<th>ID</th>
+		<th>汉语词性</th>
+		<th>汉语词语</th>
+		<th>全拼音</th>
+		<th>例句译文</th>
+		<th>汉语例句</th>
+		<th>蒙古文拉丁转换</th>
+		<th style="height: 20px;">蒙古语词语</th>
+		<th>汉语解释</th>
+		<th>置信度</th>
+		<th>备注</th>
+	</tr>
+	</thead>
+	<tbody class="tbody">
+
+
+	<tr style="background-color: #ccc" >
+
+			<td>{$list.id}</td>
+			<td>{$list.cixing}</td>
+			<td>{$list.ciyu}</td>
+			<td>{$list.pinyin}</td>
+			<td>{$list.yiwen}</td>
+			<td>{$list.liju}</td>
+			<td>{$list.ladin}</td>
+		<td ><div  class="font_menggu">{$list.menggu}</div></td>
+			<td>{$list.hanyu}</td>
+			<td>{$list.zxd}</td>
+			<td>{$list.beizhu}</td>
+	</tr>
+
+	</tbody>
+</table>
+</div>
+<script src="/public/js/my.js" type="text/javascript" charset="utf-8"></script>
+
+<div style="text-align:center;margin:50px 0; font: 14px/24px '';">
+</div>
+</body>
+</html>
+
