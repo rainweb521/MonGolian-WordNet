@@ -204,10 +204,10 @@ class wn_hypernym extends Model{
                             if ($i>$local_num-2){
                                 /** 用作上一小级的关闭 */
                                 if ($tmp_k==1){$json = $json.'}';$tmp_k=0;}
-                                $json = $json.']},';
+                                $json = $json.']}';
                             }else{
                                 if ($local[$i]==$old_local[$i]){
-                                    $json = $json.'{"name":"'.$value.'"';
+                                    $json = $json.',{"name":"'.$value.'"';
                                     break;
                                 }
                             }
@@ -218,10 +218,10 @@ class wn_hypernym extends Model{
                          */
                         for ($i=$local_num-2;$i>=0;$i--){
                             if ($i>$old_num-2){
-                                $json = $json.']},';
+                                $json = $json.']}';
                             }else{
                                 if ($local[$i]==$old_local[$i]){
-                                    $json = $json.'{"name":"'.$value.'"';
+                                    $json = $json.',{"name":"'.$value.'"';
                                     break;
                                 }
                             }
