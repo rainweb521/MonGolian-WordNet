@@ -30,9 +30,12 @@
 	语言
 	<select name="lang" id="lang">
 		<option value="1">蒙古文</option>
+		<option value="2">英文</option>
+		<option value="3">中文</option>
 	</select>
 	根部
 	<select name="root" id="root">
+		<option value="0">0</option>
 		<option value="1">1</option>
 		<option value="2">2</option>
 		<option value="3">3</option>
@@ -68,7 +71,8 @@
 	    var root = document.getElementById('root').value;
 	    var lower = document.getElementById('lower').value;
         var show = document.getElementById('show').value;
-        window.open("/index.php/index/index/wordnet_show?content=" + content + '&root=' + root + '&lower=' + lower + '&show=' + show);
+        var lang = document.getElementById('lang').value;
+        window.open("/index.php/index/index/wordnet_show?content=" + content + '&root=' + root + '&lower=' + lower + '&show=' + show + '&lang=' + lang);
     }
 
 </script>

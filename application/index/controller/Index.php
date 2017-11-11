@@ -1,6 +1,8 @@
 <?php
 namespace app\index\controller;
 use app\config\model\menggu;
+use app\config\model\mongolian;
+use app\config\model\wn_chinese;
 use app\config\model\wn_hypernym;
 use app\config\model\wn_synset;
 use \think\Request;
@@ -62,6 +64,66 @@ class Index extends Controller {
         $lower = Request::instance()->get('lower',0);
         $content = Request::instance()->get('content','');
         $show = Request::instance()->get('show',0);
+        $lang = Request::instance()->get('lang',1);
+        $wn_synset_model = new wn_synset();
+        $wn_hypernym_model = new wn_hypernym();
+        $mongolian_model = new mongolian();
+        $wn_chinese_model = new wn_chinese();
+        $now_synset_id = $wn_synset_model->get_Info_Id(array('word'=>$content));
+        $root_synset_id = $now_synset_id;
+        if ($root!=0){
+            $root_synset_id = $wn_hypernym_model->get_Root_Id($root, $now_synset_id);
+        }
+        if ($lang==2){
+            /** 显示为英文树 */
+            $tree = $wn_hypernym_model->get_Tree_English($lower + $root, $root_synset_id,$root_synset_id);
+            $root_text = $wn_synset_model->get_Info_Word(array('synset_id'=>$root_synset_id));
+            $root_text = $content;
+        }elseif ($lang==1){
+            /** 显示为蒙古文树 */
+            $tree = $wn_hypernym_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id);
+            $root_text = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$root_synset_id));
+        }elseif ($lang==3){
+            /** 显示为中文树 */
+            $tree = $wn_hypernym_model->get_Tree_Chinese($lower + $root, $root_synset_id,$root_synset_id);
+            $root_text = $wn_chinese_model->get_Info_Chinese(array('synset_id'=>$root_synset_id));
+
+        }
+        /** 判断显示方式是否为 直接显示数组键值对，便于分析 */
+        if ($show==1){
+            echo 'root:'.$root_synset_id.'<br>';
+            foreach ($tree as $key=>$value){echo $key.'=>'.$value.'<br>';}
+            exit();
+        }
+        if ($tree!=null){
+            $data = $wn_hypernym_model->get_Tree_Json(count($tree),$tree,$root_synset_id,$lang);
+        }else {$data = '';}
+
+        $data = '{"name":"'.$root_text.'", "children":['.$data.']}';
+        /** 判断显示方式是否为 直接显示Json格式的数组，便于分析复制 */
+        if ($show==2){
+            echo 'root:'.$root_synset_id.'<br>';
+            echo $data;
+            exit();
+        }
+        $myfile = fopen("public/tree.json", "w");
+        fwrite($myfile, $data);
+        fclose($myfile);
+        if ($lang==1){
+            return \view('tree');
+        }else{
+            return \view('english_tree');
+        }
+    }
+
+
+
+    public function wordnet_show_backup(){
+        $root = Request::instance()->get('root',0);
+        $lower = Request::instance()->get('lower',0);
+        $content = Request::instance()->get('content','');
+        $show = Request::instance()->get('show',0);
+        $lang = Request::instance()->get('lang',1);
         $wn_synset_model = new wn_synset();
         $wn_hypernym_model = new wn_hypernym();
         $now_synset_id = $wn_synset_model->get_Info_Id(array('word'=>$content));
@@ -81,11 +143,21 @@ class Index extends Controller {
          * 这是后来往回传值时我所想到的，有了这个值的设定，能够建立起二叉树的整个连接，哈哈哈哈哈
          * 当然，在递归中，up_synset_id是不断用.来连接的，递归越深，up_synset_id也越长
          */
-        $tree = $wn_hypernym_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id);
+        if ($lang==2){
+            /** 显示为英文树 */
+            $tree = $wn_hypernym_model->get_Tree_English($lower + $root, $root_synset_id,$root_synset_id);
+        }elseif ($lang==1){
+            $tree = $wn_hypernym_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id);
+        }elseif ($lang==3){
+            $tree = $wn_hypernym_model->get_Tree_Chinese($lower + $root, $root_synset_id,$root_synset_id);
+//            var_dump($tree);
+//            exit();
+        }
         /** 判断显示方式是否为 直接显示数组键值对，便于分析 */
         if ($show==1){
             echo 'root:'.$root_synset_id.'<br>';
-            var_dump($tree);exit();
+            foreach ($tree as $key=>$value){echo $key.'=>'.$value.'<br>';}
+            exit();
         }
         /***
          * 因为传回来的数组是0-102001223-102002490-102003441-1=>102003573，这种格式的，数组的键已经包括了根节点所对应的子节点
@@ -98,11 +170,14 @@ class Index extends Controller {
          * 闭合括号有两种，子节点也有各种各样的，整个设计出来的很巧妙，采用许多判断，临时值，最后直接返回json字符串，
          * 这个方法有弊端，但能写出来已经是很完美，毕竟写了100多行实现，我是对比着数组键值一个一个对比出来的
          */
-        /** Tree 得到的树有时是空的，因为蒙文太少了，当为空的时候，就不进行下一步操作，防止在生成树的时候报错 */
+        /** Tree 得到的树有时是空的，因为蒙文太少了，当为空的时候，就不进行下一步操作，防止在生成树的时候报错
+         lang 用作语言判断
+         */
         if ($tree!=null){
-            $data = $wn_hypernym_model->get_Tree_Json(count($tree),$tree,$root_synset_id);
+            $data = $wn_hypernym_model->get_Tree_Json(count($tree),$tree,$root_synset_id,$lang);
         }else {$data = '';}
-        $data = '{"name":"'.$content.'", "children":['.$data.']}';
+        $root_text = $wn_synset_model->get_Info(array('synset_id'=>$root_synset_id));
+        $data = '{"name":"'.$root_text['word'].'", "children":['.$data.']}';
         /** 判断显示方式是否为 直接显示Json格式的数组，便于分析复制 */
         if ($show==2){
             echo 'root:'.$root_synset_id.'<br>';
@@ -112,7 +187,11 @@ class Index extends Controller {
         $myfile = fopen("public/tree.json", "w");
         fwrite($myfile, $data);
         fclose($myfile);
-        return \view('tree');
+        if ($lang==1){
+            return \view('tree');
+        }else{
+            return \view('english_tree');
+        }
 //        foreach ($tree as $key=>$value) {
 
 //            echo $key."=>".$value;
@@ -217,6 +296,18 @@ class Index extends Controller {
 //            }
 
             echo 'queryList({q:"123",p:false,s:['.$text.']});';
+        }
+    }
+    public function update(){
+        $wn_chinese_model = new wn_chinese();
+        $list = $wn_chinese_model->get_List();
+        foreach ($list as $line){
+            $line = $line->getdata();
+            if ($line['synset_id']>500000000){
+                echo $line['synset_id'].'<br>';
+                $line['synset_id'] = $line['synset_id'] - 500000000;
+                $wn_chinese_model->save_Info($line['id'],$line);
+            }
         }
     }
 }

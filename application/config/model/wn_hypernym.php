@@ -123,7 +123,6 @@ class wn_hypernym extends Model{
         }
 //        echo $root_synset_id.'<br>';
         return $tree;
-
     }
 
     /*** 直接生成语义树的函数，传入已经有键值对的数组，逐行分析，直接用json的格式添加，最后生成字符串
@@ -132,7 +131,7 @@ class wn_hypernym extends Model{
      * @param $root 根节点
      * @return string 返回的json字符串
      */
-    public function get_Tree_Json($num, $tree,$root){
+    public function get_Tree_Json($num, $tree,$root,$lang){
         /**
          * 保存上一级的数组，上一级数组中个数，上一级的结果集，空的json字符串
          * 判断是否为最后一个的sum判断
@@ -150,29 +149,38 @@ class wn_hypernym extends Model{
             /**
              * 将synset_id更换为字符串了了了了了了
              */
-            /** 英文的显示 **/
-//            $value2 = $value;
-//            $wn_synset_model = new wn_synset();
-//            $value = $wn_synset_model->get_Info_Word(array('synset_id'=>$value));
-
-            /** 蒙古文的显示 */
-            $value2 = $value;
-            $mongolian_model = new mongolian();
-            $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$value));
-            /** 判断蒙古文是否存在 **/
-//            if ($value=='0'){
-//                /**
-//                 * 判断是不是最后一个，如果是，进行关闭操作
-//                 */
-//                $sum ++;
-//                if ($sum==$num){
-//                    $json = $json.'}';
-//                    for ($i=0;$i<$local_num-2;$i++){
-//                        $json = $json.']}';
-//                    }
-//                }
-//                continue;
-//            }
+            if ($lang==3){
+                /** 中文的显示 **/
+                $value2 = $value;
+                $wn_chinese_model = new wn_chinese();
+                $value = $wn_chinese_model->get_Info_Chinese(array('synset_id'=>$value));
+            }elseif ($lang==2){
+                /** 英文的显示 **/
+                $value2 = $value;
+                $wn_synset_model = new wn_synset();
+                $value = $wn_synset_model->get_Info_Word(array('synset_id'=>$value));
+            }elseif ($lang==1){
+                /** 蒙古文的显示 */
+                $value2 = $value;
+                $mongolian_model = new mongolian();
+                $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$value));
+                    /** 判断蒙古文是否存在
+                      后来在二叉树生成过程中判断了，就不在这里判断
+                     **/
+    //            if ($value=='0'){
+    //                /**
+    //                 * 判断是不是最后一个，如果是，进行关闭操作
+    //                 */
+    //                $sum ++;
+    //                if ($sum==$num){
+    //                    $json = $json.'}';
+    //                    for ($i=0;$i<$local_num-2;$i++){
+    //                        $json = $json.']}';
+    //                    }
+    //                }
+    //                continue;
+    //            }
+            }
             /** 不同层级关闭的时候，子节点有一个}需要关闭，在这里写一个变量，用作判断**/
             $tmp_k = 1;
 
@@ -243,5 +251,132 @@ class wn_hypernym extends Model{
         }
 //        echo $json;
         return $json;
+    }
+
+    public function get_Tree_English($num, $root_synset_id, $up_synset_id){
+        global $tree_root,$tree_tmp;
+        global $tree;
+        /**
+         * 当num为0，即查找级别为0时，退出，还是查找到的子节点为空时，退出
+         */
+//        if (($tree_root==$root_synset_id)&&($tree_tmp==1)){
+//            return $tree;
+//        }
+//        if ($tree_tmp == 0){
+//            $tree_root = $root_synset_id;
+//            $tree_tmp = 1;
+//        }
+        if ($num!=0){
+            $synset_id_arr = wn_hypernym::get_List_Id1(array('synset_id_2'=>$root_synset_id));
+//            var_dump($synset_id_arr);
+            if ($synset_id_arr!=null){
+                $sum = 1;
+                foreach ($synset_id_arr as $synset_id){
+//                    $mongolian_model = new mongolian();
+//                    $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$synset_id));
+//                    if ($value=='0'){
+//                        continue;
+//                    }
+                    /**
+                     * 在使用try的时候，因为未定义数组会报错，所以用了try，但是，在catch中，数组赋予空值，得重新赋值
+                     * 而在try中，因为我使用的是键值对的形式，所以出现了值的覆盖情况，因为一个根部对应好几个子节点，最后
+                     * 覆盖的就只剩下一个子节点了，但又不能加入两个相同的键来进行赋值，所以，把所有的值放在一起
+                     *
+                     * 完全不可以，很痛苦的未定义数组提示，这个提示怎么也去不掉，我想到了编号的方法，就数据编号，这样也比较好看一些
+                     * 希望传出去以后，好截取和替换一些，数据整体没有问题了，
+                     *
+                     * tree不是数组，无论如何，都不是数组，不知道为什么，就不是数组
+                     */
+                    try{
+                        $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
+                    }catch (Exception $exception){
+                        $tree[strval($up_synset_id.'-'.$sum)] = '';
+                    }
+                    $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
+                    $sum ++ ;
+//                    if (array_key_exists(strval($up_synset_id),$tree[strval($up_synset_id)])){
+//                        $tree[strval($up_synset_id)] = $tree[strval($up_synset_id)].$synset_id;
+//                    }else{
+//                        $tree[strval($up_synset_id)] = '';
+//                    }
+                    /***
+                     * 这是打印出所有的数据，并且以一定的格式，输出的是一个很长的字符串，不同好截取，所以我放弃了，只作为打印参考
+                     *
+                     */
+//                    $tree = $tree.'['.$up_synset_id.'=>'.$synset_id.'],<br>';
+                    wn_hypernym::get_Tree_English($num-1, $synset_id, $up_synset_id.'-'.$synset_id);
+//                    $tree = $tree.'],<br>';
+//                    echo $tree.'<br>';
+//                    var_dump($synset_id);echo "<br>";
+//                    return $synset_id;
+                }
+//                if ($root_synset_id)
+            }
+        }
+//        echo $root_synset_id.'<br>';
+        return $tree;
+    }
+    public function get_Tree_Chinese($num, $root_synset_id, $up_synset_id){
+        global $tree_root,$tree_tmp;
+        global $tree;
+        /**
+         * 当num为0，即查找级别为0时，退出，还是查找到的子节点为空时，退出
+         */
+//        if (($tree_root==$root_synset_id)&&($tree_tmp==1)){
+//            return $tree;
+//        }
+//        if ($tree_tmp == 0){
+//            $tree_root = $root_synset_id;
+//            $tree_tmp = 1;
+//        }
+        if ($num!=0){
+            $synset_id_arr = wn_hypernym::get_List_Id1(array('synset_id_2'=>$root_synset_id));
+//            var_dump($synset_id_arr);
+            if ($synset_id_arr!=null){
+                $sum = 1;
+                foreach ($synset_id_arr as $synset_id){
+                    $wn_chinese_model = new wn_chinese();
+                    $value = $wn_chinese_model->get_Info_Chinese(array('synset_id'=>$synset_id));
+                    if ($value=='1'){
+                        continue;
+                    }
+                    /**
+                     * 在使用try的时候，因为未定义数组会报错，所以用了try，但是，在catch中，数组赋予空值，得重新赋值
+                     * 而在try中，因为我使用的是键值对的形式，所以出现了值的覆盖情况，因为一个根部对应好几个子节点，最后
+                     * 覆盖的就只剩下一个子节点了，但又不能加入两个相同的键来进行赋值，所以，把所有的值放在一起
+                     *
+                     * 完全不可以，很痛苦的未定义数组提示，这个提示怎么也去不掉，我想到了编号的方法，就数据编号，这样也比较好看一些
+                     * 希望传出去以后，好截取和替换一些，数据整体没有问题了，
+                     *
+                     * tree不是数组，无论如何，都不是数组，不知道为什么，就不是数组
+                     */
+                    try{
+                        $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
+                    }catch (Exception $exception){
+                        $tree[strval($up_synset_id.'-'.$sum)] = '';
+                    }
+                    $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
+                    $sum ++ ;
+//                    if (array_key_exists(strval($up_synset_id),$tree[strval($up_synset_id)])){
+//                        $tree[strval($up_synset_id)] = $tree[strval($up_synset_id)].$synset_id;
+//                    }else{
+//                        $tree[strval($up_synset_id)] = '';
+//                    }
+                    /***
+                     * 这是打印出所有的数据，并且以一定的格式，输出的是一个很长的字符串，不同好截取，所以我放弃了，只作为打印参考
+                     *
+                     */
+//                    $tree = $tree.'['.$up_synset_id.'=>'.$synset_id.'],<br>';
+                    wn_hypernym::get_Tree_Chinese($num-1, $synset_id, $up_synset_id.'-'.$synset_id);
+//                    $tree = $tree.'],<br>';
+//                    echo $tree.'<br>';
+//                    var_dump($synset_id);echo "<br>";
+//                    return $synset_id;
+                }
+//                if ($root_synset_id)
+            }
+        }
+//        echo $root_synset_id.'<br>';
+        return $tree;
     }
 }
