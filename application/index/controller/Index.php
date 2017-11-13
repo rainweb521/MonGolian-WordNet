@@ -60,6 +60,7 @@ class Index extends Controller {
         return view('wordnet');
     }
     public function wordnet_show(){
+        header("Content-type: text/html; charset=utf-8");
         $root = Request::instance()->get('root',0);
         $lower = Request::instance()->get('lower',0);
         $content = Request::instance()->get('content','');
@@ -69,26 +70,47 @@ class Index extends Controller {
         $wn_hypernym_model = new wn_hypernym();
         $mongolian_model = new mongolian();
         $wn_chinese_model = new wn_chinese();
-        $now_synset_id = $wn_synset_model->get_Info_Id(array('word'=>$content));
-        $root_synset_id = $now_synset_id;
-        if ($root!=0){
-            $root_synset_id = $wn_hypernym_model->get_Root_Id($root, $now_synset_id);
-        }
+        $root_synset_id = $now_synset_id = 0;
         if ($lang==2){
             /** 显示为英文树 */
+            $now_synset_id = $wn_synset_model->get_Info_Id(array('word'=>$content));
+            $root_synset_id = $now_synset_id;
+            if ($root!=0){
+                $root_synset_id = $wn_hypernym_model->get_Root_Id($root, $now_synset_id);
+            }
             $tree = $wn_hypernym_model->get_Tree_English($lower + $root, $root_synset_id,$root_synset_id);
             $root_text = $wn_synset_model->get_Info_Word(array('synset_id'=>$root_synset_id));
-            $root_text = $content;
+            if ($root==0){
+                $root_text = $content;
+            }
         }elseif ($lang==1){
             /** 显示为蒙古文树 */
+            $now_synset_id = $wn_synset_model->get_Info_Id(array('word'=>$content));
+
+            $root_synset_id = $now_synset_id;
+            if ($root!=0){
+                $root_synset_id = $wn_hypernym_model->get_Root_Id($root, $now_synset_id);
+            }
             $tree = $wn_hypernym_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id);
             $root_text = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$root_synset_id));
+            if ($root_text=='0'){
+                $root_text = '蒙古文中没有对应的此节点';
+            }
         }elseif ($lang==3){
             /** 显示为中文树 */
+            $now_synset_id = $wn_chinese_model->get_Info_Id(array('chinese'=>$content));
+//            echo $now_synset_id;
+            $root_synset_id = $now_synset_id;
+            if ($root!=0){
+                $root_synset_id = $wn_hypernym_model->get_Root_Id($root, $now_synset_id);
+            }
             $tree = $wn_hypernym_model->get_Tree_Chinese($lower + $root, $root_synset_id,$root_synset_id);
             $root_text = $wn_chinese_model->get_Info_Chinese(array('synset_id'=>$root_synset_id));
-
+            if ($root==0){
+                $root_text = $content;
+            }
         }
+
         /** 判断显示方式是否为 直接显示数组键值对，便于分析 */
         if ($show==1){
             echo 'root:'.$root_synset_id.'<br>';
@@ -270,31 +292,30 @@ class Index extends Controller {
             echo 'queryList({"q":"","p":false,"bs":"","csor":"0","status":770,"s":[]});';
         }else{
             $ladin = array('like',$content.'%');
-//            $allcn = preg_match("/^[".chr(0xa1)."-".chr(0xff)."]+$/",$content[0]);
+            $allcn = preg_match("/^[".chr(0xa1)."-".chr(0xff)."]+$/",$content[0]);
 //            $where = array();
-            $menggu_model = new wn_synset();
-            $where['word'] = $ladin;
-                $list = $menggu_model->get_List($where);
+            $wn_synset_model = new wn_synset();
+            $wn_chinese_model = new wn_chinese();
+//                $list = $wn_synset_model->get_List($where);
+//                $text = '';
+//                foreach ($list as $item) {
+//                    $text = $text.'"'.$item['word'].'",';
+//                }
+            if ($allcn){
+                $where['chinese'] = $ladin;
+                $list = $wn_chinese_model->get_List($where);
+                $text = '';
+                foreach ($list as $item) {
+                    $text = $text.'"'.$item['chinese'].'",';
+                }
+            } else {
+                $where['word'] = $ladin;
+                $list = $wn_synset_model->get_List($where);
                 $text = '';
                 foreach ($list as $item) {
                     $text = $text.'"'.$item['word'].'",';
                 }
-//            if ($allcn){
-//                $where['ciyu'] = $ladin;
-//                $list = $menggu_model->get_Cmdic1List($where);
-//                $text = '';
-//                foreach ($list as $item) {
-//                    $text = $text.'"'.$item['ciyu'].'",';
-//                }
-//            } else {
-//                $where['ladin'] = $ladin;
-//                $list = $menggu_model->get_Cmdic1List($where);
-//                $text = '';
-//                foreach ($list as $item) {
-//                    $text = $text.'"'.$item['ladin'].'",';
-//                }
-//            }
-
+            }
             echo 'queryList({q:"123",p:false,s:['.$text.']});';
         }
     }

@@ -1,1 +1,1 @@
-{"name":"1", "children":[{"name":"因果关系"},{"name":"局部"},{"name":"相互关系"}]}
+{"name":"1", "children":[{"name":"连结物", "children":[{"name":"连接", "children":[{"name":"接触"},{"name":"一热接面"}]},{"name":"结合"}]},{"name":"运输", "children":[{"name":"电车轨道"}]},{"name":"武器", "children":[{"name":"弹药"}]}]}

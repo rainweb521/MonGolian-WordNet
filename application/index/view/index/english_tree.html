@@ -20,6 +20,7 @@
             stroke-width: 1.5px;
         }
         body {
+            height: 100%;
             margin-left: 5%;
         }
     </style>
@@ -28,8 +29,8 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-    var width = 500,
-        height = 500;
+    var width = 600,
+        height = 600;
 
     var tree = d3.layout.tree()
         .size([width, height-200])

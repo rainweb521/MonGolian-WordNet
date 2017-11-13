@@ -191,6 +191,13 @@ class wn_hypernym extends Model{
                  * 后来因为涉及到蒙古文的显示，蒙古文很少，有的没有，所以这样判断是草率的，
                  */
                 $json = $json.'{"name":"'.$value.'"';
+                /**
+                 * 判断如果是第一个又是最后一个，进行关闭操作
+                 */
+//                $sum ++;
+                if ($sum==$num){
+                    $json = $json.'}';
+                }
             }else{
 //                $local = array_reverse($local);
 //                $old_local = array_reverse($old_local);
