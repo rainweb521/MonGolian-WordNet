@@ -32,7 +32,7 @@ class wn_synset extends Model{
     }
     public function get_Info_Id($where=null){
         $data = wn_synset::where($where)->find();
-        return $data->getData('synset_id');
+        $result = $data->getData('synset_id');
     }
     public function get_List($where=null){
 //        $map['name'] = array('like','thinkphp%');
