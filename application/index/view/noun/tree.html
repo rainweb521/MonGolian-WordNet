@@ -31,24 +31,21 @@
     </style>
 </head>
 <body>
-<p>段落1</p>
-<p>段落2</p>
-<p>段落3</p>
-<p>段落4</p>
-<p>段落5</p>
+
 <script type="text/javascript">
     //获取当前点击的对象
 
 </script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="/public/js/d3.v3.min.js"></script>
 <script src="/public/js/jquery.min.js"></script>
 <script>
     $(document).ready(function(){
-        $("#node").click(function(){
-            var data = $(this).contents();
-            alert(data.text());
+        $("g").click(function(){
+            var data = $(this).find('text:first');
+            data.css('text-anchor','start');
+//            alert(data.text());
         });
-        $('g').click(
+        $('p').click(
             function(){
                 //this表示当前被点击元素，但是此时我们当做dom对象
 //                window.alert(this.innerHTML);
@@ -94,16 +91,24 @@
             .attr("d", diagonal);
 
         var node = svg.selectAll(".node")
+
             .data(nodes)
             .enter()
             .append("g")
             .attr("class", "node")
-            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+            .on("click",function(d){
+                alert(d.name);
+            })
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; }
+
+            )
 
         node.append("circle")
             .attr("r", 4.5);
 
         node.append("text")
+
+            .attr("class","node_text")
             .attr("dx", function(d) { return d.children ? -8 : 8; })
             .attr("dy", 3)
             .style("text-anchor", function(d) { return d.children ? "end" : "start"; })
