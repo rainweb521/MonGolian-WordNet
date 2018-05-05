@@ -13,6 +13,7 @@ class Common extends Controller {
     public function __construct(){
         header("Content-type: text/html; charset=utf-8");
         error_reporting(E_ERROR | E_WARNING | E_PARSE);
+        $this->_initialize();
         parent::__construct();
         $this->_init();
     }

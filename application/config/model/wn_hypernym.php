@@ -34,11 +34,25 @@ class wn_hypernym extends Model{
         $data = wn_hypernym::where($where)->find();
         return $data->getData();
     }
+    /** 用于查找根id 的函数，num表示查询次数，synset_id是要查询的上级id
+     * @param $num
+     * @param $synset_id
+     * @return mixed
+     */
     public function get_Root_Id($num,$synset_id){
-        for ($i=0;$i<$num;$i++){
-            $tmp = $this->get_Info_Id(array('synset_id_1'=>$synset_id));
+        for ($i=0;$i<=$num;$i++){
+            $data = $this->get_Info_Id(array('synset_id_1'=>$synset_id));
+            $tmp = $data['synset_id_2'];
             if ($tmp!=0){
                 $synset_id = $tmp;
+                /**
+                 *  这里这段是新加入的，因为我发现，当前数据本来是没有子节点的，但当root的数量变了以后，lower的增加，节点数量也会增加
+                 * 原来是get_Info_Id返回的数据为Semantic_class_No，而不是No_ID，
+                 * 所以在这里加了一个判断，当是最后一次循环时，就返回No_ID，而不是Semantic_class_No
+                 */
+                if ($i==$num){
+                    $synset_id = $data['synset_id_1'];
+                }
             }
         }
         return $synset_id;
@@ -53,7 +67,7 @@ class wn_hypernym extends Model{
 //            $wn = new wn_synset();
 //            var_dump($wn->get_List_Id(array('synset_id'=>$data->getData('synset_id_2'))));
 //            echo '<br>';
-            return $data->getData('synset_id_2');
+            return $data->getData();
         }
     }
     public function get_List_Id1($where=null){
@@ -61,6 +75,13 @@ class wn_hypernym extends Model{
         $list = wn_hypernym::where($where)->column('synset_id_1');
         return $list;
     }
+
+    /** 旧版不使用，只做参考
+     * @param $num
+     * @param $root_synset_id
+     * @param $up_synset_id
+     * @return mixed
+     */
     public function get_Tree($num, $root_synset_id, $up_synset_id){
         global $tree_root,$tree_tmp;
         global $tree;
@@ -157,13 +178,16 @@ class wn_hypernym extends Model{
             }elseif ($lang==2){
                 /** 英文的显示 **/
                 $value2 = $value;
-                $wn_synset_model = new wn_synset();
-                $value = $wn_synset_model->get_Info_Word(array('synset_id'=>$value));
+                $english_model = new englishM();
+//                $value = $english_model->get_Info_Word(array('synset_id'=>$value));
+                $english_data = $english_model->get_Info(array('synset_id'=>$value));
+//                $value = $english_data['word'].$english_data['word_chs'];
+                $value = $english_data['word'];
             }elseif ($lang==1){
                 /** 蒙古文的显示 */
-                $value2 = $value;
-                $mongolian_model = new mongolian();
-                $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$value));
+//                $value2 = $value;
+//                $mongolian_model = new mongolian();
+//                $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$value));
                     /** 判断蒙古文是否存在
                       后来在二叉树生成过程中判断了，就不在这里判断
                      **/
@@ -260,7 +284,18 @@ class wn_hypernym extends Model{
         return $json;
     }
 
-    public function get_Tree_English($num, $root_synset_id, $up_synset_id){
+    /**  正在使用的树数据生成函数
+     * @param $num
+     * @param $root_synset_id
+     * @param $up_synset_id
+     * @param $line_num
+     * @return mixed
+     */
+    /**
+     * select_id 是为了显示出要查找的数据，因为数据库中同节点下的子节点很多，有时就不会显示要查找的那个节点的数据，在这里做一个判断
+     * 在每次查找出来的id列表中比较一下有没有这个select_id，如果有，就把这个优先放到数组里
+     */
+    public function get_Tree_English($num, $root_synset_id, $up_synset_id,$line_num,$select_id){
         global $tree_root,$tree_tmp;
         global $tree;
         /**
@@ -278,7 +313,14 @@ class wn_hypernym extends Model{
 //            var_dump($synset_id_arr);
             if ($synset_id_arr!=null){
                 $sum = 1;
+                $type = 0;
+                /** 这里添加对select_id是否在数组中的判断 */
+                $isin = in_array($select_id,$synset_id_arr);
+                if($isin){
+                    $type = 1;
+                }
                 foreach ($synset_id_arr as $synset_id){
+
 //                    $mongolian_model = new mongolian();
 //                    $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$synset_id));
 //                    if ($value=='0'){
@@ -294,6 +336,18 @@ class wn_hypernym extends Model{
                      *
                      * tree不是数组，无论如何，都不是数组，不知道为什么，就不是数组
                      */
+                    /** 判断是不是最后一个要录入的子节点，如果 */
+                    if ($synset_id==$select_id){
+                        $type = 0;
+                    }
+
+                    if ($sum==$line_num){
+                        if ($type==1){
+                            if ($synset_id!=$select_id){
+                                continue;
+                            }
+                        }
+                    }
                     try{
                         $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
                     }catch (Exception $exception){
@@ -301,6 +355,9 @@ class wn_hypernym extends Model{
                     }
                     $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
                     $sum ++ ;
+                    if($sum>$line_num){
+                        return $tree;
+                    }
 //                    if (array_key_exists(strval($up_synset_id),$tree[strval($up_synset_id)])){
 //                        $tree[strval($up_synset_id)] = $tree[strval($up_synset_id)].$synset_id;
 //                    }else{
@@ -311,7 +368,7 @@ class wn_hypernym extends Model{
                      *
                      */
 //                    $tree = $tree.'['.$up_synset_id.'=>'.$synset_id.'],<br>';
-                    wn_hypernym::get_Tree_English($num-1, $synset_id, $up_synset_id.'-'.$synset_id);
+                    wn_hypernym::get_Tree_English($num-1, $synset_id, $up_synset_id.'-'.$synset_id,$line_num,$select_id);
 //                    $tree = $tree.'],<br>';
 //                    echo $tree.'<br>';
 //                    var_dump($synset_id);echo "<br>";

@@ -1,5 +1,7 @@
 <?php
 namespace app\index\controller;
+use app\config\model\cilei;
+use app\config\model\jinyici;
 use app\config\model\menggu;
 use app\config\model\mongolian;
 use app\config\model\nounM;
@@ -42,17 +44,13 @@ class Noun extends Controller {
             echo 'queryList({q:"123",p:false,s:['.$text.']});';
         }
     }
-    public function wordnet(){
-
-        return view('wordnet');
-    }
     public function wordnet_show(){
         header("Content-type: text/html; charset=utf-8");
         $root = Request::instance()->get('root',0);
         $lower = Request::instance()->get('lower',0);
         $line_num = Request::instance()->get('line_num',20);
         $content = Request::instance()->get('content','');
-//        $show = Request::instance()->get('show',0);
+        $type = Request::instance()->get('type',0);
         $lang = Request::instance()->get('lang',1);
         $wn_synset_model = new wn_synset();
         $wn_hypernym_model = new wn_hypernym();
@@ -62,10 +60,31 @@ class Noun extends Controller {
 
         $noun_model = new nounM();
             /** 显示为蒙古文树 */
-            $data = $noun_model->get_Info_noun(['Chinese'=>$content]);
+            if ($type==2){
+                $data = $noun_model->get_Info_noun(['Mongolian'=>$content]);
+            }else{
+                $data = $noun_model->get_Info_noun(['Chinese'=>$content]);
+            }
+        /** 因为后期有修改，所以在这里先渲染到页面里 */
+            $this->assign('data',$data);
+        /**
+         *  获取近义词和词类的数据列表，近义词为wordnet_synet1
+         */
+            $jinyici_model = new jinyici();
+            $jinyici_data = $jinyici_model->get_List(['MONGOL'=>$content]);
+            $cilei_model = new cilei();
+            $cilei_data = $cilei_model->get_List(['MONGOL'=>$content]);
+            var_dump($jinyici_data);exit();
+
+            $this->assign('jinyici',$jinyici_data);
+            $this->assign('cilei',$cilei_data);
 //            var_dump($data);exit();
+
+//            return \view('tree');
+
             $now_Semantic_class_No = $data['Semantic_class_No'];
             $now_No_ID = $data['No_ID'];
+
             /*****  先设置root的id为本id，再去查找root的id*/
             $root_synset_id = $now_No_ID;
             /** 判断root是不是等于0，如果是则表示为当前id，不是的话就需要去查找root次数的根id，lower不用查找，因为在后来直接会往下进行寻找 */
@@ -79,14 +98,18 @@ class Noun extends Controller {
                 $root_synset_id = $noun_model->get_Root_Id($root, $now_Semantic_class_No);
             }
 //            echo $root_synset_id;exit();
-            $tree = $noun_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id,$line_num);
+            $tree = $noun_model->get_Tree($lower + $root, $root_synset_id,$root_synset_id,$line_num,$now_No_ID);
 //            返回的tree是类似于这种形状的{ ["14278-1"]=> int(14279) ["14278-14279-1"]=> int(3178) ["14278-14279-2"]=> int(12551)
         // 这只是提取出的形式数据，以键值对的形式来展现，需要通过get_Tree_Json来处理才能显示
 
 //        var_dump($tree);exit();
             /*  此时假设root的id就是本id，直接使用上面查找到的data数据*/
+        if ($root_synset_id==''){
+            /** 这种情况是可能查找根节点的时候，根节点不存在上级节点，所以会查找到空值，为了防止报错，直接使用根节点id */
+            $root_synset_id = $now_No_ID;
+        }
             $root_data = $noun_model->get_Info_noun(['No_ID'=>$root_synset_id]);
-            $root_text = $root_data['Mongolian'].$root_data['Chinese'];
+            $root_text = $root_data['Mongolian'];
 //            var_dump($root_synset_id);exit();
 //            if ($root_text=='0'){
 //                $root_text = '蒙古文中没有对应的此节点';

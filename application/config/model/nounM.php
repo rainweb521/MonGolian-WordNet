@@ -29,7 +29,11 @@ class nounM extends Model{
      */
     public function get_Info($where=null){
         $data = nounM::where($where)->find();
-        return $data->getData();
+        if ($data!=null){
+            return $data->getData();
+        }else{
+            return '';
+        }
     }
     public function get_Info_noun($where=null){
         $data = nounM::where($where)->find();
@@ -49,6 +53,9 @@ class nounM extends Model{
     public function get_Root_Id($num,$synset_id){
         for ($i=0;$i<$num;$i++){
             $data = $this->get_Info_Id(array('No_ID'=>$synset_id));
+            if ($data==''){
+                break;
+            }
             $tmp = $data['Semantic_class_No'];
             if ($tmp!=0){
                 $synset_id = $tmp;
@@ -72,7 +79,11 @@ class nounM extends Model{
      */
     public function get_Info_Id($where=null){
         $data = nounM::where($where)->find();
-        return $data->getData();
+        if ($data!=null){
+            return $data->getData();
+        }else{
+            return '';
+        }
     }
     public function get_Root_noun($num,$vdbt){
         for ($i=0;$i<$num;$i++){
@@ -102,7 +113,7 @@ class nounM extends Model{
      * @param $line_num 每个节点的数量
      * @return mixed
      */
-    public function get_Tree($num, $root_synset_id, $up_synset_id,$line_num){
+    public function get_Tree($num, $root_synset_id, $up_synset_id,$line_num,$select_id){
         global $tree_root,$tree_tmp;
         global $tree;
         /**
@@ -123,6 +134,12 @@ class nounM extends Model{
 //            var_dump($synset_id_arr);
             if ($synset_id_arr!=null){
                 $sum = 1;
+                $type = 0;
+                /** 这里添加对select_id是否在数组中的判断 */
+                $isin = in_array($select_id,$synset_id_arr);
+                if($isin){
+                    $type = 1;
+                }
                 foreach ($synset_id_arr as $synset_id){
 //                    echo $synset_id.'<br>';
 //                    $wn_chinese_model = new wn_chinese();
@@ -130,6 +147,19 @@ class nounM extends Model{
 //                    if ($value=='1'){
 //                        continue;
 //                    }
+                    /** 判断是不是最后一个要录入的子节点，如果 */
+                    if ($synset_id==$select_id){
+                        $type = 0;
+                    }
+
+                    if ($sum==$line_num){
+                        if ($type==1){
+                            if ($synset_id!=$select_id){
+                                continue;
+                            }
+                        }
+                    }
+
                     try{
                         $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
                     }catch (Exception $exception){
@@ -150,7 +180,7 @@ class nounM extends Model{
                      *
                      */
 //                    $tree = $tree.'['.$up_synset_id.'=>'.$synset_id.'],<br>';
-                    nounM::get_Tree($num-1, $synset_id, $up_synset_id.'-'.$synset_id,$line_num);
+                    nounM::get_Tree($num-1, $synset_id, $up_synset_id.'-'.$synset_id,$line_num,$select_id);
 //                    $tree = $tree.'],<br>';
 //                    echo $tree.'<br>';
 //                    var_dump($synset_id);echo "<br>";

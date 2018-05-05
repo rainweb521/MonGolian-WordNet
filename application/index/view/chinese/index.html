@@ -13,8 +13,8 @@
 }
 </style>
 <body>
-{include file="index/header"}
-<h1 align="center" style="margin-top: 80px;margin-bottom: -90px;">蒙古文词网</h1>
+{include file="/index/header"}
+<h1 align="center" style="margin-top: 80px;margin-bottom: -90px;">中文词网检索</h1>
 <div class="all" id="out" style="">
 	<!--<input name="type" checked type="radio" onchange="tiaozhuan1();" value="1">拉丁<input onchange="tiaozhuan2();" name="type" type="radio" value="1">汉语-->
 
@@ -26,12 +26,6 @@
 		<ul id="oul"></ul>
 	</div>
 	<br>
-	词性
-	<select name="lang" id="lang">
-		<option value="1">名词</option>
-		<!--<option value="2">动词</option>-->
-		<!--<option value="3">形容词</option>-->
-	</select>
 	根部
 	<select name="root" id="root">
 		<option value="0">0</option>
@@ -81,7 +75,7 @@
 	    var lower = document.getElementById('lower').value;
 //        var show = document.getElementById('show').value;
         var line_num = document.getElementById('line_num').value;
-        window.open("/index.php/index/noun/wordnet_show?content=" + content + '&root=' + root + '&lower=' + lower + '&line_num=' + line_num);
+        window.open("/index.php/index/chinese/wordnet_show?content=" + content + '&root=' + root + '&lower=' + lower + '&line_num=' + line_num);
     }
 
 </script>
@@ -99,13 +93,13 @@
 
     ipt.oninput = function() {
         var ss = ipt.value;
-        var url = "/index.php/index/noun/select_json?content=" + ss;
+        var url = "/index.php/index/chinese/select_json?content=" + ss;
         addScript(url);
     }
 
     ipt.onfocus = function() {
         var ss = ipt.value;
-        var url = "/index.php/index/noun/select_json?content=" + ss;
+        var url = "/index.php/index/chinese/select_json?content=" + ss;
         addScript(url);
 
     }

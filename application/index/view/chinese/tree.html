@@ -12,7 +12,7 @@
         }
 
         .node {
-            font: 14px sans-serif;
+            font: 12px sans-serif;
         }
 
         .link {
@@ -21,50 +21,25 @@
             stroke-width: 1.5px;
         }
         body {
-            padding-left: 10%;
-            -moz-transform: rotate(90deg);
-            -webkit-transform: rotate(90deg);
-            display: block;
-            position: absolute;
-            filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=0)
+            /*padding-left: 10%;*/
+            /*-moz-transform: rotate(90deg);*/
+            /*-webkit-transform: rotate(90deg);*/
+            /*display: block;*/
+            /*position: absolute;*/
+            /*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=0)*/
         }
     </style>
 </head>
 <body>
-<div style="float: right;margin-right: 55%;margin-top: -30%;" align="right">
+<div style="float: right;margin-left: -55%;" align="right">
     <table border="1" cellspacing="0">
-
         <tr>
             <th>单词</th>
-            <th>{$data.Mongolian}</th>
+            <th>{$data.word}</th>
         </tr>
         <tr>
-            <th>英文</th>
-            <th>{$data.English}</th>
-        </tr>
-        <tr>
-            <th>中文</th>
-            <th>{$data.Chinese}</th>
-        </tr>
-        <tr>
-            <th>拉丁文</th>
-            <th>{$data.Galig}</th>
-        </tr>
-        <tr>
-            <th>近义词</th>
-            <th>
-                {volist name="jinyici" id="line"}
-                    {$line.MONGOL}
-                {/volist}
-            </th>
-        </tr>
-        <tr>
-            <th>词类</th>
-            <th>
-                {volist name="cilei" id="line"}
-                {$line.MONGOL}
-                {/volist}
-            </th>
+            <th>释义</th>
+            <th>{$data.word_chs}</th>
         </tr>
     </table>
 </div>
@@ -76,10 +51,11 @@
 <script src="/public/js/jquery.min.js"></script>
 <script>
     $(document).ready(function(){
-        $("g").mousemove(function(){
+        var data = $(this).find('text:first');
+        data.css('text-anchor','start');
+        $("g").mousedown(function(){
             var data = $(this).find('text:first');
             data.css('text-anchor','start');
-//            alert(data.text());
         });
         $('p').click(
             function(){
@@ -93,8 +69,8 @@
 </script>
 <script>
 
-    var width = 500,
-        height = 500;
+    var width = 800,
+        height = 800;
 
     var tree = d3.layout.tree()
         .size([width, height-200])
@@ -133,7 +109,8 @@
             .append("g")
             .attr("class", "node")
             .on("click",function(d){
-                location.href='/index.php/index/noun/wordnet_show?content='+d.name+'&root=2&lower=2&line_num=5&type=2';
+                location.href='/index.php/index/english/wordnet_show?content='+d.name+'&root=2&lower=2&line_num=5';
+//                alert(d.name);
             })
             .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; }
 
