@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿
 <html>
 <head>
 <meta charset="utf-8" />
@@ -8,30 +8,84 @@
 
 </head>
 <style>
-.all{
+	.select_text {
+		margin-left: 40%;
+		-moz-transform: rotate(270deg);
+		-webkit-transform: rotate(270deg);
+		display: block;
+		position: absolute;
+		/*filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=0)*/
+	}
+#ser_box{
+
+	margin-left: -30%;
+	margin-top: -30px;
+	-moz-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	display: block;
+	position: absolute;
+	float: left;
 
 }
+	#bot_box{
+
+	margin-left: -24.5%;
+	margin-top: -40px;
+	-moz-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	display: block;
+	position: absolute;
+	/*float: left;*/
+
+}
+
+	#title{
+		margin-top: 80px;margin-bottom: -90px;
+		-moz-transform: rotate(90deg);
+		-webkit-transform: rotate(90deg);
+		display: block;
+		position: absolute;
+		float: left;
+	}
+	section{
+		font-size: 12px;
+	}
+#section_list{
+		font-size: 12px;
+	margin-left: -25%;
+	display: none;
+}
+	body{
+		/*background-repeat:no-repeat;background-position:center;*/
+		background-image: url('/public/img/8.jpg');
+		background-size: 100% 100%;.
+		width:100%;height: 100%;
+	}
 </style>
-<body>
+<body style="width:100%;height: 100%;">
+<div id="backgroud">
 {include file="index/header"}
-<h1 align="center" style="margin-top: 80px;margin-bottom: -90px;">蒙古文词网</h1>
+
+<h1 align="center" id="title" style="">蒙古文词网</h1>
 <div class="all" id="out" style="">
 	<!--<input name="type" checked type="radio" onchange="tiaozhuan1();" value="1">拉丁<input onchange="tiaozhuan2();" name="type" type="radio" value="1">汉语-->
 
-	<div id="ser_box">
-		 <input type="search" name="content"  id="ipt" /><span><input id="su" onclick="tiaozhuan();" value="生成词网" class="bg s_btn" type="button"></span>
+	<div id="ser_box" >
+		 <input type="search" name="content"  id="ipt" /><span><input id="su" onclick="tiaozhuan();" value="生成" class="bg s_btn" type="button"></span>
 	</div>
 
 	<div id="bot_box">
 		<ul id="oul"></ul>
 	</div>
 	<br>
+	<div id="section_list">
 	词性
 	<select name="lang" id="lang">
 		<option value="1">名词</option>
 		<!--<option value="2">动词</option>-->
 		<!--<option value="3">形容词</option>-->
 	</select>
+		<br>
 	根部
 	<select name="root" id="root">
 		<option value="0">0</option>
@@ -41,6 +95,7 @@
 		<option value="4">4</option>
 		<option value="5">5</option>
 	</select>
+		<br>
 	底部
 	<select name="lower" id="lower">
 		<option value="1">1</option>
@@ -53,6 +108,7 @@
 		<!--<option>8</option>-->
 		<!--<option>9</option>-->
 	</select>
+		<br>
 	节点个数
 	<select name="line_num" id="line_num">
 		<option value="5">5</option>
@@ -63,6 +119,7 @@
 		<!--<option>8</option>-->
 		<!--<option>9</option>-->
 	</select>
+	</div>
 	<!--显示方式-->
 	<!--<select name="show" id="show">-->
 		<!--<option value="0">词网树状图</option>-->
@@ -81,7 +138,8 @@
 	    var lower = document.getElementById('lower').value;
 //        var show = document.getElementById('show').value;
         var line_num = document.getElementById('line_num').value;
-        window.open("/index.php/index/noun/wordnet_show?content=" + content + '&root=' + root + '&lower=' + lower + '&line_num=' + line_num);
+        root = 2;lower=2;line_num=5;
+        window.open("/index.php/index/noun/wordnet_show?type=2&content=" + content + '&root=' + root + '&lower=' + lower + '&line_num=' + line_num);
     }
 
 </script>
@@ -117,9 +175,9 @@
         var arr = data.s;
         oul.innerHTML = "";
         if(arr.length == 0) {
-            bot.style.display = "none";
+//            bot.style.display = "none";
         } else {
-            bot.style.display = "block";
+//            bot.style.display = "block";
         }
 
         for(var i = 0; i < arr.length; i++) {
@@ -128,7 +186,7 @@
             li.onclick = function() {
                 oul.innerHTML = "";
                 ipt.value = this.innerHTML;
-                bot.style.display = "none";
+//                bot.style.display = "none";
             }
             oul.appendChild(li);
         }
@@ -202,7 +260,7 @@
         }
     }
 </script>
-
+</div>
 </body>
 </html>
 

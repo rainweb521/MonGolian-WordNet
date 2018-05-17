@@ -131,7 +131,7 @@ class nounM extends Model{
             /** 查找id 的个数，返回一个数组  所查询到的是归属于rootid 的子类的id */
             /** @var  这里输入的是上级id的字段，因为这是查找条件，查找那些上级id是本id 的数据，也就是归属于本id的数据 */
             $synset_id_arr = nounM::get_List_Id1(array('Semantic_class_No'=>$root_synset_id));
-//            var_dump($synset_id_arr);
+//            var_dump(count($synset_id_arr));exit();
             if ($synset_id_arr!=null){
                 $sum = 1;
                 $type = 0;
@@ -147,6 +147,10 @@ class nounM extends Model{
 //                    if ($value=='1'){
 //                        continue;
 //                    }
+                    /** 在这里加入...，判断line_num是否小于数组的元素个数 */
+                    if ($line_num<count($synset_id_arr)){
+                        $tree[strval($up_synset_id.'-'.'0')] = '.'.$synset_id;
+                    }
                     /** 判断是不是最后一个要录入的子节点，如果 */
                     if ($synset_id==$select_id){
                         $type = 0;
@@ -168,6 +172,8 @@ class nounM extends Model{
                     $tree[strval($up_synset_id.'-'.$sum)] = $synset_id;
                     $sum ++ ;
                     if($sum>$line_num){
+                        /** 因为树状图是反转90度的，所以在这里加...，会变成开头 */
+//                        $tree[strval($up_synset_id.'-'.$sum)] = '...';
                         return $tree;
                     }
 //                    if (array_key_exists(strval($up_synset_id),$tree[strval($up_synset_id)])){
@@ -218,15 +224,26 @@ class nounM extends Model{
              * 将synset_id更换为字符串了了了了了了
              */
             if ($lang==3){
-                /** 中文的显示 **/
-                $value2 = $value;
+
+                $value = '...';
 //                $wn_chinese_model = new wn_chinese();
 //                $value = $wn_chinese_model->get_Info_Chinese(array('synset_id'=>$value));
             }elseif ($lang==1){
-                /** 蒙古文的显示 */
+                /** 扩展的.....的显示 **/
                 $value2 = $value;
-                $data = nounM::get_Info_noun(['No_ID'=>$value]);
-                $value = $data['Mongolian'];
+                if ($value[0]!='.'){
+                    /** 蒙古文的显示 */
+                    $data = nounM::get_Info_noun(['No_ID'=>$value]);
+                    $value = $data['Mongolian'];
+                }else{
+                    /** 这里这么写，是因为在前端要获取跟随的字符串，如果只是传一个id，那么后台还需要再进行改动，这里我将.去除掉
+                     *  然后再查找，查找到以后再加上.，前端直接过滤掉.，就可以用蒙文查询了
+                     */
+                    $value=str_replace('.','',$value);
+                    $data = nounM::get_Info_noun(['No_ID'=>$value]);
+                    $value = '.'.$data['Mongolian'];
+                }
+
 //                $mongolian_model = new mongolian();
 //                $value = $mongolian_model->get_Info_Mongolian(array('synset_id'=>$value));
                 /** 判断蒙古文是否存在

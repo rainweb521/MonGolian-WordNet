@@ -1,6 +1,7 @@
 <?php
 namespace app\index\controller;
 use app\config\model\cilei;
+use app\config\model\fanyici;
 use app\config\model\jinyici;
 use app\config\model\menggu;
 use app\config\model\mongolian;
@@ -13,8 +14,11 @@ use think\Controller;
 use \think\View;
 class Noun extends Controller {
     public function index(){
+        $mengu_model = new menggu();
+        $mengu =array();
+        $mengu = $mengu_model->get_Cmdic1Info(['id'=>'110134']);
 //        return '<style type="text/css">*{ padding: 0; margin: 0; } .think_default_text{ padding: 4px 48px;} a{color:#2E5CD5;cursor: pointer;text-decoration: none} a:hover{text-decoration:underline; } body{ background: #fff; font-family: "Century Gothic","Microsoft yahei"; color: #333;font-size:18px} h1{ font-size: 100px; font-weight: normal; margin-bottom: 12px; } p{ line-height: 1.6em; font-size: 42px }</style><div style="padding: 24px 48px;"> <h1>:)</h1><p> ThinkPHP V5<br/><span style="font-size:30px">十年磨一剑 - 为API开发设计的高性能框架</span></p><span style="font-size:22px;">[ V5.0 版本由 <a href="http://www.qiniu.com" target="qiniu">七牛云</a> 独家赞助发布 ]</span></div><script type="text/javascript" src="http://tajs.qq.com/stats?sId=9347272" charset="UTF-8"></script><script type="text/javascript" src="http://ad.topthink.com/Public/static/client.js"></script><thinkad id="ad_bd568ce7058a1091"></thinkad>';
-        return view('index');
+        return view('index',array('title'=>$mengu['menggu']));
     }
 
     /**
@@ -32,12 +36,13 @@ class Noun extends Controller {
 //            $where = array();
             $noun_model = new nounM();
 //            if ($allcn){
-                $where['Chinese'] = $ladin;
+                $where['Mongolian'] = $ladin;
+//                $where['Chinese'] = $ladin;
                 $list = $noun_model->get_NounList($where);
                 $text = '';
                 /** @var  $item 拼接json字符串 */
             foreach ($list as $item) {
-                    $text = $text.'"'.$item['Chinese'].'",';
+                    $text = $text.'"'.$item['Mongolian'].'",';
                 }
 //            }
 
@@ -70,14 +75,23 @@ class Noun extends Controller {
         /**
          *  获取近义词和词类的数据列表，近义词为wordnet_synet1
          */
-            $jinyici_model = new jinyici();
-            $jinyici_data = $jinyici_model->get_List(['MONGOL'=>$content]);
-            $cilei_model = new cilei();
-            $cilei_data = $cilei_model->get_List(['MONGOL'=>$content]);
-            var_dump($jinyici_data);exit();
+        $fanyici_model = new fanyici();
+        /** 在导入Excel数据时，存在空格，所以使用like来查询 */
+        $fanyici_data = $fanyici_model->get_Info(['mongolian'=>array('like','%'.$content.'%')]);
+        $fanyici_list = array();
+        if ($fanyici_data!=''){
+            $fanyici_list = $fanyici_model->get_List(['flag'=>$fanyici_data['flag']]);
+        }
+//        var_dump($fanyici_data);exit();
+        $this->assign('fanyici',$fanyici_list);
+//            $jinyici_model = new jinyici();
+//            $jinyici_data = $jinyici_model->get_List(['MONGOL'=>$content]);
+//            $cilei_model = new cilei();
+//            $cilei_data = $cilei_model->get_List(['MONGOL'=>$content]);
+//            var_dump($jinyici_data);exit();
 
-            $this->assign('jinyici',$jinyici_data);
-            $this->assign('cilei',$cilei_data);
+//            $this->assign('jinyici',$jinyici_data);
+//            $this->assign('cilei',$cilei_data);
 //            var_dump($data);exit();
 
 //            return \view('tree');
