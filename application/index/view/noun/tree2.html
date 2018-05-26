@@ -14,16 +14,32 @@ var myChart = echarts.init(dom);
 var app = {};
 option = null;
 myChart.showLoading();
+
 $.get('/public/tree.json', function (data) {
+//    myChart.on("click", clickFun);
     myChart.hideLoading();
 
-    myChart.setOption(option = {
+    myChart.setOption(
+
+        option = {
         tooltip: {
             trigger: 'item',
             triggerOn: 'mousemove'
+
         },
+            legend: {
+                top: '2%',
+                left: '3%',
+                orient: 'vertical',
+                data: [{
+                    name: 'tree',
+                    icon: 'rectangle'
+                } ],
+                borderColor: '#c23531'
+            },
         series:[
             {
+                name:'tree',
                 type: 'tree',
 
                 data: [data],
@@ -68,6 +84,15 @@ $.get('/public/tree.json', function (data) {
 ;
 if (option && typeof option === "object") {
     myChart.setOption(option, true);
+}
+//关键点！
+function clickFun(param) {
+    if (typeof param.seriesIndex == 'undefined') {
+        return;
+    }
+    if (param.type == 'click') {
+        alert(param.name);
+    }
 }
        </script>
    </body>
